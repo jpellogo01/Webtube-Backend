@@ -9,4 +9,7 @@ import java.util.List;
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     // Find all comments associated with a specific news item
     List<Comment> findByNews(News news);
+    List<Comment> findByStatus(String approved);
+
+
 }

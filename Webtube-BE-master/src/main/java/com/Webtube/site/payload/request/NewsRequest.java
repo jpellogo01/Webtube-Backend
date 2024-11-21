@@ -1,4 +1,4 @@
-package com.Webtube.site.payload;
+package com.Webtube.site.payload.request;
 public class NewsRequest {
     private String title;
     private String description;

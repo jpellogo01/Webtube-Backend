@@ -26,16 +26,14 @@ public class ViewAndCommentController {
     private NewsRepository newsRepository;
 
 
-    // Endpoint to add a comment to a specific news item
     // Endpoint to get all comments for a specific news item
-    @GetMapping("news/comments/{newsId}")
+    @GetMapping("news/approved/comments/{newsId}")
     public ResponseEntity<List<Comment>> getComments(@PathVariable Long newsId) {
         // Find the news item by ID
         var news = newsRepository.findById(newsId).orElseThrow(() -> new RuntimeException("News not found"));
 
         // Get all comments for the news item
-        List<Comment> comments = commentRepository.findByNews(news);
-
+        List<Comment> comments = commentRepository.findByStatus("approved");
         return ResponseEntity.ok(comments);
     }
 
@@ -47,6 +45,7 @@ public class ViewAndCommentController {
 
         // Set the news item to the comment
         comment.setNews(news);
+        comment.setStatus("pending");
 
         // Save the comment to the database
         commentRepository.save(comment);

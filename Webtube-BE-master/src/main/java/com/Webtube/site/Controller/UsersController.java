@@ -37,7 +37,6 @@ public class UsersController {
 
 
     // GET Mapping for retrieving all users
-    // Modify the @GetMapping method in your backend to format the roles correctly
     @GetMapping("/user")
     public ResponseEntity<?> getAllUsers() {
         List<Users> usersList = usersRepository.findAll();
@@ -123,24 +122,49 @@ public class UsersController {
 
     // PUT Mapping for updating user details
     @PutMapping("/user/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @Valid @RequestBody SignupRequest updateRequest) {
+    public ResponseEntity<?> updateUser(
+            @PathVariable Long id,
+            @Valid @RequestBody SignupRequest updateRequest) {
+
         return usersRepository.findById(id).map(user -> {
+            // Update basic fields
             user.setUsername(updateRequest.getUsername());
             user.setEmail(updateRequest.getEmail());
+            user.setFullname(updateRequest.getFullname());
             user.setPassword(encoder.encode(updateRequest.getPassword()));
+
+            // Handle role updates
+            Set<String> roleNames = updateRequest.getRole();
+            Set<Role> updatedRoles = roleNames.stream()
+                    .map(roleName -> roleRepository.findByName(ERole.valueOf(roleName))
+                            .orElseThrow(() -> new RuntimeException("Error: Role not found.")))
+                    .collect(Collectors.toSet());
+            user.setRoles(updatedRoles);
+
+            // Save updated user
             usersRepository.save(user);
             return ResponseEntity.ok(new MessageResponse("User updated successfully!"));
         }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Error: User not found.")));
     }
 
+
     // DELETE Mapping for deleting a user by ID
     @DeleteMapping("/user/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         return usersRepository.findById(id).map(user -> {
+            // Restrict deletion of the default user
+            if ("defaultUser".equals(user.getUsername())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new MessageResponse("Error: Default user cannot be deleted."));
+            }
+
+            // Allow deletion for other users
             usersRepository.delete(user);
             return ResponseEntity.ok(new MessageResponse("User deleted successfully!"));
-        }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Error: User not found.")));
+        }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new MessageResponse("Error: User not found.")));
     }
+
 }
 
 

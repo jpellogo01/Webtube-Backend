@@ -65,11 +65,14 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
                             .requestMatchers("/api/v1/public-news").permitAll()
                             .requestMatchers("/api/v1/news/view/**").permitAll() // fixed pattern here
                             .requestMatchers("/api/v1/news/views/**").permitAll() // fixed pattern here
+                            .requestMatchers("/api/v1/news/comments/pending").hasRole("ADMIN")
+                            .requestMatchers("/api/v1/news/comment/{action}/{commentID}").hasRole("ADMIN")
                             .requestMatchers("/api/v1/news/comment/**").permitAll() // fixed pattern here
                             .requestMatchers("/api/v1/news/comments/**").permitAll() // fixed pattern here
                             .requestMatchers("/api/v1/news").hasAnyRole("ADMIN", "AUTHOR")
                             .requestMatchers("/api/v1/user/**").hasRole("ADMIN")
                             .requestMatchers("/api/v1/news/rejected").hasRole("ADMIN")
+                            .requestMatchers("/api/v1/news/reject").hasRole("ADMIN")
                             .requestMatchers("/api/v1/news/approved").hasRole("ADMIN")
                             .requestMatchers("/api/v1/news/approve").hasRole("ADMIN")
                             .requestMatchers("/api/v1/news/pending").hasRole("ADMIN")

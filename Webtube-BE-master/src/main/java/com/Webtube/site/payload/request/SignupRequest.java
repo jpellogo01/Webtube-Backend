@@ -1,6 +1,8 @@
 package com.Webtube.site.payload.request;
 
 
+import com.Webtube.site.Model.Role;
+
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
@@ -65,4 +67,6 @@ public class SignupRequest {
   public void setRole(Set<String> role) {
     this.role = role;
   }
+
+
 }

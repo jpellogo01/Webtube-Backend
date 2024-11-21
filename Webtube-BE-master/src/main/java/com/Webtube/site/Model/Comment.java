@@ -1,5 +1,6 @@
 package com.Webtube.site.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,6 +29,12 @@ public class Comment {
     @Column(name = "email")
     private String email;
 
+    @Setter
+    @Getter
+    @Column(name = "status")
+    private String status;
+
+
     @Lob
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
@@ -40,6 +47,7 @@ public class Comment {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @JsonIgnore  // This will prevent the News field from being serialized
     @ManyToOne
     @JoinColumn(name = "news_id", nullable = false)
     private News news;
