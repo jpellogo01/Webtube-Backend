@@ -11,4 +11,6 @@ public interface ViewRepository extends JpaRepository<View, Long> {
     List<View> findByNews(News news);
 
     long countByNews(News news);
+
+    void deleteByNewsId(long newsId);
 }

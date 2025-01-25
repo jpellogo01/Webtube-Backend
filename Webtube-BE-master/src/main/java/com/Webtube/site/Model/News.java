@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -19,6 +20,7 @@ import java.util.List;
 @Entity
 @Table(name = "News")
 public class News {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,6 +47,8 @@ public class News {
     @Column(name = "author")
     private String author;
 
+    // Getter for content
+    @Getter
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
@@ -53,6 +57,9 @@ public class News {
 
     @Column(name = "status")
     private String status = "Pending"; // Default to "Pending"
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date publicationDate;
 
     // New field for additional photos
     @Getter
@@ -67,6 +74,7 @@ public class News {
     @Getter
     @Column(name = "embed_youtube_url")
     private String embedYouTubeUrl;
+
 
 
     // Custom formatter for date/time display

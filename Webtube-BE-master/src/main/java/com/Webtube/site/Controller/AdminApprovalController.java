@@ -1,18 +1,25 @@
 package com.Webtube.site.Controller;
 
+import com.Webtube.site.Exception.NewsNotFoundException;
 import com.Webtube.site.Model.Comment;
 import com.Webtube.site.Model.News;
 import com.Webtube.site.Model.Notification;
 import com.Webtube.site.Repository.CommentRepository;
 import com.Webtube.site.Repository.NewsRepository;
 import com.Webtube.site.Repository.NotificationRepository;
+import com.Webtube.site.payload.request.NewsApprovalRequest;
 import com.Webtube.site.payload.response.CommentWithNewsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+
 @CrossOrigin(origins = "http://localhost:3000/")
 @RestController
 //@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_AUTHOR')")
@@ -28,7 +35,7 @@ public class AdminApprovalController {
     private CommentRepository commentRepository;
 
 
-    @GetMapping("news/pending")
+    @GetMapping("pending/news")
     public List<News> getAllPendingNews() {
         return newsRepository.findByStatus("Pending");
     }
@@ -48,22 +55,52 @@ public class AdminApprovalController {
 
 
     //ADMIN DASHBOARD CONTROLLER
-    @PostMapping("news/approve/{id}")
-    public News approveNews(@PathVariable Long id) {
+
+
+    // Modify to use @RequestBody for accepting JSON payload
+    @PostMapping("approve/news/{id}")
+    public News approveNews(@PathVariable Long id,
+                            @RequestBody NewsApprovalRequest request) {
+
         News news = newsRepository.findById(id).orElseThrow(() -> new RuntimeException("News not found"));
+
+        if ("Approved".equals(news.getStatus())) {
+            throw new RuntimeException("News is already approved.");
+        }
+
+        // If publicationDate is provided, check if it's in the future
+        if (request.getPublicationDate() != null) {
+            ZonedDateTime requestedPublicationDate = request.getPublicationDate();  // Use the provided publication date directly
+            ZonedDateTime currentTime = ZonedDateTime.now(ZoneId.of("Asia/Manila"));
+
+            // Check if the publicationDate is in the future
+            if (requestedPublicationDate.isBefore(currentTime)) {
+                throw new RuntimeException("The publication date must be in the future.");
+            }
+
+            // If it's valid, set the publicationDate
+            news.setPublicationDate(Date.from(requestedPublicationDate.toInstant()));
+        } else {
+            // If no publicationDate is provided, publish immediately in PHT
+            ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Manila"));
+            news.setPublicationDate(Date.from(zdt.toInstant()));
+        }
+
         news.setStatus("Approved");
         newsRepository.save(news);
 
         // Create and save a notification for the author
         Notification notification = new Notification();
         notification.setAuthor(news.getAuthor());
-        notification.setMessage("Your content titled '" + news.getTitle() + "' has been approved.");
+        notification.setMessage("Your content titled '" + news.getTitle() + "' has been approved and will be published at "
+                + (request.getPublicationDate() != null ? request.getPublicationDate() : "now") + ".");
         notificationRepository.save(notification);
 
         return news;
     }
 
-    @PostMapping("news/reject/{id}")
+
+    @PostMapping("reject/news/{id}")
     public News rejectNews(@PathVariable Long id) {
         News news = newsRepository.findById(id).orElseThrow(() -> new RuntimeException("News not found"));
         news.setStatus("Rejected");
@@ -100,6 +137,35 @@ public class AdminApprovalController {
 
         return result;
     }
+
+    @GetMapping("news/comments/pending/{id}")
+    public ResponseEntity<CommentWithNewsDTO> getPendingCommentById(@PathVariable Long id) {
+        // Fetch the pending comment by ID
+        Optional<Comment> commentOptional = commentRepository.findByIdAndStatus(id, "pending");
+
+        if (commentOptional.isEmpty()) {
+            // Return a 404 Not Found response if the comment is not found
+            return ResponseEntity.notFound().build();
+        }
+
+        Comment comment = commentOptional.get();
+
+        // Get the news title associated with the comment
+        String newsTitle = comment.getNews() != null ? comment.getNews().getTitle() : null;
+
+        // Convert the comment to a DTO
+        CommentWithNewsDTO result = new CommentWithNewsDTO(
+                comment.getId(),
+                comment.getContent(),
+                comment.getStatus(),
+                newsTitle
+        );
+
+        // Return the DTO in the response
+        return ResponseEntity.ok(result);
+    }
+
+
 
 
     @PostMapping("news/comment/{action}/{commentID}")

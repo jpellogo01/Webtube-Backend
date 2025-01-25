@@ -6,6 +6,7 @@ import com.Webtube.site.Model.Role;
 import com.Webtube.site.Model.Users;
 import com.Webtube.site.Repository.RoleRepository;
 import com.Webtube.site.Repository.UsersRepository;
+import com.Webtube.site.Security.services.EmailService;
 import com.Webtube.site.payload.request.SignupRequest;
 import com.Webtube.site.payload.response.MessageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
 
 import javax.validation.Valid;
 import java.util.*;
@@ -35,6 +37,8 @@ public class UsersController {
     @Autowired
     PasswordEncoder encoder;
 
+    @Autowired
+    EmailService emailService;
 
     // GET Mapping for retrieving all users
     @GetMapping("/user")
@@ -64,18 +68,14 @@ public class UsersController {
         return ResponseEntity.ok(userDetailsList);
     }
 
+
+
     @PostMapping("/user")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        if (usersRepository.existsByUsername(signUpRequest.getUsername())) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Error: Username is already taken!"));
-        }
-
-//        if (usersRepository.existsByEmail(signUpRequest.getEmail())) {
+//        if (usersRepository.existsByUsername(signUpRequest.getUsername())) {
 //            return ResponseEntity
 //                    .badRequest()
-//                    .body(new MessageResponse("Error: Email is already in use!"));
+//                    .body(new MessageResponse("Error: Username is already taken!"));
 //        }
 
         // Create new user's account
@@ -89,7 +89,7 @@ public class UsersController {
 
         if (strRoles == null) {
             Role userRole = roleRepository.findByName(ERole.ROLE_AUTHOR)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found. 1"));
+                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
             roles.add(userRole);
         } else {
             strRoles.forEach(role -> {
@@ -108,8 +108,18 @@ public class UsersController {
         user.setRoles(roles);
         usersRepository.save(user);
 
+        // Send credentials email
+        String emailBody = "Hello " + signUpRequest.getFullname() + ",\n\n"
+                + "Your account has been successfully created.\n"
+                + "Username: " + signUpRequest.getUsername() + "\n"
+                + "Password: " + signUpRequest.getPassword() + "\n\n"
+                + "Please log in and change your password as soon as possible.";
+
+        emailService.sendEmail(signUpRequest.getEmail(), "Account Registration", emailBody);
+
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
+
 
     // GET Mapping for retrieving user details by ID
     @GetMapping("/user/{id}")
@@ -131,18 +141,46 @@ public class UsersController {
             user.setUsername(updateRequest.getUsername());
             user.setEmail(updateRequest.getEmail());
             user.setFullname(updateRequest.getFullname());
-            user.setPassword(encoder.encode(updateRequest.getPassword()));
+
+            // Update password only if it is provided
+            if (updateRequest.getPassword() != null && !updateRequest.getPassword().trim().isEmpty()) {
+                user.setPassword(encoder.encode(updateRequest.getPassword()));
+            }
 
             // Handle role updates
-            Set<String> roleNames = updateRequest.getRole();
-            Set<Role> updatedRoles = roleNames.stream()
-                    .map(roleName -> roleRepository.findByName(ERole.valueOf(roleName))
-                            .orElseThrow(() -> new RuntimeException("Error: Role not found.")))
-                    .collect(Collectors.toSet());
-            user.setRoles(updatedRoles);
+            Set<String> strRoles = updateRequest.getRole();
+            Set<Role> roles = new HashSet<>();
+
+            if (strRoles == null) {
+                Role userRole = roleRepository.findByName(ERole.ROLE_AUTHOR)
+                        .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                roles.add(userRole);
+            } else {
+                strRoles.forEach(role -> {
+                    if (role.equals("admin")) {
+                        Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(adminRole);
+                    } else {
+                        Role authorRole = roleRepository.findByName(ERole.ROLE_AUTHOR)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(authorRole);
+                    }
+                });
+            }
+
+            user.setRoles(roles);
 
             // Save updated user
             usersRepository.save(user);
+
+            String emailBody = "Hello " + updateRequest.getFullname() + ",\n\n"
+                    + "Your account has been successfully updated to.\n"
+                    + "Username: " + updateRequest.getUsername() + "\n"
+                    + "Password: " + updateRequest.getPassword() + "\n\n"
+                    + "Please don't forget your password again";
+
+            emailService.sendEmail(updateRequest.getEmail(), "Account Registration", emailBody);
             return ResponseEntity.ok(new MessageResponse("User updated successfully!"));
         }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Error: User not found.")));
     }

@@ -33,12 +33,12 @@ public class ViewAndCommentController {
         var news = newsRepository.findById(newsId).orElseThrow(() -> new RuntimeException("News not found"));
 
         // Get all comments for the news item
-        List<Comment> comments = commentRepository.findByStatus("approved");
+        List<Comment> comments = commentRepository.findByNewsIdAndStatus(newsId, "Approved");
         return ResponseEntity.ok(comments);
     }
 
     // Endpoint to add a new comment for a specific news item
-    @PostMapping("news/comment/{newsId}")
+    @PostMapping("/comment-news/{newsId}")
     public ResponseEntity<?> addComment(@PathVariable Long newsId, @RequestBody Comment comment) {
         // Find the news item by ID
         var news = newsRepository.findById(newsId).orElseThrow(() -> new RuntimeException("News not found"));
@@ -56,7 +56,7 @@ public class ViewAndCommentController {
 
 
     // Endpoint to add a new view for a specific news item
-    @PostMapping("news/view/{newsId}")
+    @PostMapping("view-news/{newsId}")
     public ResponseEntity<?> addView(@PathVariable Long newsId, @RequestParam String viewerIp) {
         // Find the news item by ID
         var news = newsRepository.findById(newsId).orElseThrow(() -> new RuntimeException("News not found"));

@@ -11,6 +11,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -56,26 +57,28 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http.csrf(csrf -> csrf.disable())
+    http.csrf(AbstractHttpConfigurer::disable)
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth ->
                     auth.requestMatchers("/api/v1/login").permitAll()
-                            .requestMatchers("/api/v1/public-news").permitAll()
-                            .requestMatchers("/api/v1/public-news").permitAll()
-                            .requestMatchers("/api/v1/news/view/**").permitAll() // fixed pattern here
+                            .requestMatchers("/hitOpenaiApi/**").permitAll()
+                            .requestMatchers("/api/v1/public-news/**").permitAll()
+                            .requestMatchers("/api/v1/public-news/**").permitAll()
+                            .requestMatchers("/api/v1/view-news/**").permitAll() // fixed pattern here
                             .requestMatchers("/api/v1/news/views/**").permitAll() // fixed pattern here
                             .requestMatchers("/api/v1/news/comments/pending").hasRole("ADMIN")
                             .requestMatchers("/api/v1/news/comment/{action}/{commentID}").hasRole("ADMIN")
-                            .requestMatchers("/api/v1/news/comment/**").permitAll() // fixed pattern here
+                            .requestMatchers("/api/v1/comment-news/**").permitAll() // fixed pattern here
                             .requestMatchers("/api/v1/news/comments/**").permitAll() // fixed pattern here
                             .requestMatchers("/api/v1/news").hasAnyRole("ADMIN", "AUTHOR")
                             .requestMatchers("/api/v1/user/**").hasRole("ADMIN")
                             .requestMatchers("/api/v1/news/rejected").hasRole("ADMIN")
                             .requestMatchers("/api/v1/news/reject").hasRole("ADMIN")
-                            .requestMatchers("/api/v1/news/approved").hasRole("ADMIN")
-                            .requestMatchers("/api/v1/news/approve").hasRole("ADMIN")
-                            .requestMatchers("/api/v1/news/pending").hasRole("ADMIN")
+                            .requestMatchers("/api/v1/news/approved/comments/**").permitAll()
+                            .requestMatchers("/api/v1/approved/news").hasRole("ADMIN")
+                            .requestMatchers("/api/v1/approve/news").hasRole("ADMIN")
+                            .requestMatchers("/api/v1/pending/news").hasRole("ADMIN")
                             .requestMatchers("/api/v1/news/notifications/**").hasRole("AUTHOR")
                             .anyRequest().authenticated()
             );
