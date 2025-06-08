@@ -23,6 +23,7 @@ import java.util.Optional;
 @CrossOrigin(origins = "http://localhost:3000/")
 @RestController
 //@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_AUTHOR')")
+//Comment I added
 @RequestMapping("/api/v1")
 public class AdminApprovalController {
     // Get all pending news articles
