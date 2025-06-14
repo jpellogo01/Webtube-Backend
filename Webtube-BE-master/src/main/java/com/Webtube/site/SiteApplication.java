@@ -9,7 +9,7 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootApplication
 public class SiteApplication {
 
-	@Value("${openai.api.key}") // ✅ This one is correct
+	@Value("${openai.api.key}")
 	private String openAiApiKey;
 	public static void main(String[] args) {
 		SpringApplication.run(SiteApplication.class, args);

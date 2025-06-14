@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8081:8081"
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/dlsauwebtubedb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_MAIL_PASSWORD: gjgtlenfknuevnuw
+      openai.api.key: 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
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: dlsauwebtubedb
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
