@@ -12,7 +12,7 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_MAIL_PASSWORD: gjgtlenfknuevnuw
-      openai.api.key: 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
+      openai.api.key: ${OPENAI_API_KEY}
 
   db:
     image: mysql:8.0
