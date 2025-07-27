@@ -31,26 +31,7 @@ The backend manages user authentication, content creation, comment moderation, a
 
 ## 📁 Project Structure (Simplified)
 
-backend/
-│
-├── src/
-│ ├── main/
-│ │ ├── java/com/webtube/site/
-│ │ │ ├── Controller/
-│ │ │ ├── Model/
-│ │ │ ├── Repository/
-│ │ │ ├── Security/
-│ │ │ ├── Service/
-│ │ │ └── payload/
-│ │ └── resources/
-│ │ ├── application.properties
-│
-├── pom.xml
-└── README.md
-
-yaml
-Copy
-Edit
+<img width="486" height="880" alt="image" src="https://github.com/user-attachments/assets/03649d8b-2a6c-4af5-b053-6b19d7aa96a0" />
 
 ---
 
@@ -74,8 +55,6 @@ Configure the database and API keys
 Edit src/main/resources/application.properties:
 
 properties
-Copy
-Edit
 spring.datasource.url=jdbc:mysql://localhost:3306/webtube_db
 spring.datasource.username=your_mysql_user
 spring.datasource.password=your_mysql_password
@@ -84,9 +63,7 @@ openai.api.key=YOUR_OPENAI_API_KEY
 Run the application
 Use your IDE or run via terminal:
 
-bash
-Copy
-Edit
+
 ./mvnw spring-boot:run
 📬 Sample API Endpoints
 Method	Endpoint	Description
